@@ -26,6 +26,12 @@ class MessageType(Enum):
     auctions = 11
     leave = 12
     bid = 13
+    list = 14
+
+
+    msg = 21
+    close = 22
+    kickout = 23
 
     err_nickname_taken = 101
 
@@ -43,8 +49,13 @@ def _get_message_type_from_value(value):
         9: MessageType.server_notification,
         10: MessageType.chat_history_bundle,
 
-        12:MessageType.leave,
-        13:MessageType.bid,
+        12: MessageType.leave,
+        13: MessageType.bid,
+
+
+        21: MessageType.msg,
+        22: MessageType.close,
+        23: MessageType.kickout,
 
         101: MessageType.err_nickname_taken,
     }[value]

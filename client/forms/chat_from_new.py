@@ -15,7 +15,7 @@ import random
 import sys
 
 
-COMMAND = [ '/bid','/enter','/leave', '/bid']
+COMMAND = [ '/bid','/enter','/leave', '/auctions', '/list']
 
 class ChatRoom():
     def __init__(self):
@@ -72,6 +72,10 @@ class ChatRoom():
                     print('you are not in room')
                     continue
                 self.sc.send(MessageType.bid, msg[1])
+            if msg[0] == '/auctions':
+                self.sc.send(MessageType.auctions)
+            if msg[0] == '/list':
+                self.sc.send(MessageType.list)
 
 
     def get_selected_user(self):
@@ -133,6 +137,15 @@ class ChatRoom():
                         #user_list[data['parameters']['id']] = ''
                         self.insert_system_message(data['parameters']['nickname'] + ' 已经li线')
 
+                    if data['type'] == MessageType.auctions:
+                        pprint(data['parameters']['message'])
+
+                    if data['type'] == MessageType.list:
+                        if self.room == -1:
+                            print("you are not in room now")
+                            continue
+                        pprint(data['parameters']['message'])
+
                     if data['type'] == MessageType.on_new_message:
                         self.room = data['parameters']['enter']
                         print(data['parameters']['message'])
@@ -140,6 +153,8 @@ class ChatRoom():
                     if data['type'] == MessageType.leave:
                         if data['parameters']['nickname'] == self.name:
                             nickname_ = 'You '
+                            if self.room == data['parameters']['roomnumber']:
+                                self.room = -1
                         else:
                             nickname_ = data['parameters']['nickname']
 
@@ -160,6 +175,18 @@ class ChatRoom():
 
                         if self.room == data['parameters']['roomnumber']:
                             print(nickname_ + data['parameters']['message'])
+
+                    if data['type'] == MessageType.msg:
+                        self.insert_system_message(data['parameters'])
+
+                    if data['type'] == MessageType.kickout:
+                        self.room = -1
+                        self.insert_system_message("你被管理员踢出了房间，嘻嘻")
+
+                    if data['type'] == MessageType.close:
+                        self.room = -1
+                        self.insert_system_message("The room has been shut down")
+                        self.insert_system_message("You are at lobby now")
 
 
                 else:

@@ -15,6 +15,8 @@ def run(sc, parameter):
         message_ = "you have enter room" + str(parameter) + 'successfully'
         entered_ = parameter
         socket_mappings['room'][sc.socket] = parameter
+        user_id = socket_mappings["user_id"][sc.socket]
+        room_mappings["user_id"][parameter].append(user_id)
 
     else:
         message_ = "The room doesn't exist"

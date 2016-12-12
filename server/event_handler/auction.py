@@ -1,15 +1,27 @@
 from common.message import MessageType
-from server.memory import socket_mappings
+from server.memory import socket_mappings, room_mappings
 from server.memory import user_id_mappings
 from server.broadcast import broadcast
 
 
 
 def run(sc, parameter):
-    sender_user_id = socket_mappings['user_id'][sc.socket]
+    message_ = {
+        "auctionname":{},
+        "bid":{},
+        "userlist":[]
+    }
 
-    message = {"message": message_, "nickname": nickname_, "roomnumber":str(parameter)}
-    broadcast(MessageType.leave,message)
+    for room in room_list:
+        message_["auctionname"][room] = room_mappings["auctionname"][room]
+        message_["bid"][room] = room_mappings["bid"][room]
+        nickname_ = []
+        for id in room_mappings["user_id"][room]:
+            nickname_.append(user_id_mappings["nickname"][id])
+        message_["userlist"][room] = nickname_
+
+    message = {"message": message_}
+    sc.socket.send(MessageType.leave,message)
 
 
 

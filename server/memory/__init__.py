@@ -12,9 +12,9 @@ socket_mappings = {
 
 room_mappings = {
     "user_id": {},
-    "nickname": {},
-    'sc': {},
-    'bid': {}
+    "auctionname":{},
+    'bid': {},
+    'lastbidder':{}
 }
 
 connections = []

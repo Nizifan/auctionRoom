@@ -17,6 +17,7 @@ def run(sc, parameter):
     if bid_price_ < int(parameter):
         message_ = " has bid " + str(parameter)
         room_mappings['bid'][room] = int(parameter)
+        room_mappings['lastbidder'][room] = sender_user_id
         message = {"message": message_, "nickname": nickname_, "roomnumber":room, 'bid':parameter}
     else:
         message_ = ""

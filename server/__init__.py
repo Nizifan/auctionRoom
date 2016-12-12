@@ -4,7 +4,7 @@ import socket
 from common.config import get_config
 from common.transmission.secure_channel import accept_client_to_secure_channel
 from server.event_handler import handle_event
-from server.memory import socket_mappings, remove_from_socket_mapping, connections
+from server.memory import socket_mappings, remove_from_socket_mapping, connections, user_id_mappings, room_list
 import server.memory
 from common.message import MessageType
 from server.broadcast import broadcast
@@ -12,6 +12,7 @@ import select
 from server.memory import room_mappings
 import _thread
 
+COMMAND = ['/msg', '/list', '/kickout', '/enter', '/leave', ]
 
 def run():
     config = get_config()
@@ -19,8 +20,9 @@ def run():
     s.bind((config['server']['bind_ip'], config['server']['bind_port']))
     s.listen(1)
 
-    #test
-    room_mappings['bid']['1'] = 0
+    self.room = -1
+
+    openauction(1,"caiyihan de pants", 100)
 
     print("Server listening on " + config['server']['bind_ip'] + ":" + str(config['server']['bind_port']))
 
@@ -60,5 +62,59 @@ def run():
                 remove_from_socket_mapping(i)
 
 def mainLoop():
-    
-    return
+    while True:
+        msg = input().split(' ');
+        if msg[0] not in COMMAND:
+            print('Wrong input,try again')
+            continue
+        if msg[0] == '/msg':
+            if len(msg) == 2:
+                broadcast(MessageType.msg, msg[1])
+            else:
+                socket = user_id_mappings['sc'][int(msg[1])]
+                socket.send(MessageType.msg, msg[2])
+        if msg[0] == '/list':
+            if self.room == -1:
+                print("Not in room")
+                continue
+            for id in room_mappings[self.room]:
+                print(user_id_mappings['nickname'][id])
+        if msg[0] == '/kickout':
+            socket = user_id_mappings['sc'][int(msg[1])]
+            socket.send(MessageType.kickout, "")
+        if msg[0] == '/openauction':
+            openauction(msg[1],msg[2],msg[3])
+        if msg[0] == '/auction':
+            for room in room_list:
+                print(room + room_mappings['auctionname'] + room['bid'])
+        if msg[0] == '/enter':
+            if formatcheck(msg, 2):
+                continue
+            if self.room != -1:
+                print("already in room")
+                continue
+            self.room = msg[1]
+
+        if msg[0] == '/leave':
+            self.room = -1
+
+        if msg[0] == '/close':
+            room_mappings.remove(msg[1])
+            for id in room_mappings['user_id']:
+                socket = user_id_mappings['sc'][id]
+                socket.send(MessageType.close,"")
+
+def openauction(roomnumber,auctionname,bidprice):
+    room_mappings['user_id'][roomnumber] = []
+    room_mappings['auctionname'] = auctionname
+    room_mappings['bid'] = bidprice
+    room_mappings['lastbidder'] = -1
+    room_list.append(roomnumber)
+    print("open auction successfully")
+
+def formatcheck(msg,param):
+    if len(msg) != param:
+        print("Param wrong!")
+        return 1
+    else:
+        return 0

@@ -6,5 +6,4 @@ from server.memory import socket_mappings, connections
 
 def broadcast(message_type, parameters):
     for connection in connections:
-        print(connection)
         socket_mappings['sc'][connection].send(message_type, parameters)

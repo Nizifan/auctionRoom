@@ -16,8 +16,7 @@
 # 安装说明
 Python版本: 3.5
 
-pip install pycrypto # 用于AES加密
-pip3 install PyQt5 ＃ GUI
+pip3 install pycrypto # 用于AES加密
 
 # 运行方法
 python run_client.py
