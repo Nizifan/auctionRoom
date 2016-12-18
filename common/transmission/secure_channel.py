@@ -8,7 +8,7 @@ import socket
 from common.config import get_config
 from common.util import long_to_bytes
 from common.cryptography import crypt
-from pprint import pprint
+
 from common.message import serialize_message, deserialize_message, MessageType
 
 
@@ -34,7 +34,6 @@ class SecureChannel:
         encrypted_message = encryption_suite.encrypt(data_to_encrypt)
         length_of_encrypted_message = len(encrypted_message)
 
-        print('send somthing')
 
         self.socket.send(
             struct.pack('!L', length_of_encrypted_message) + bytes([padding_n]) + iv1 + encrypted_message)
@@ -42,7 +41,6 @@ class SecureChannel:
 
     def recv(self):
 
-        print('receive somthing')
         # 客户端断开连接时，预防服务器端抛出错误
         try:
             first_4_bytes = self.socket.recv(4)

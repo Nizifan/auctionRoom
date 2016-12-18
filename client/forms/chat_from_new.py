@@ -1,6 +1,3 @@
-from PyQt5.QtWidgets import *
-from PyQt5 import QtCore, QtGui, QtWidgets
-
 from common.transmission.secure_channel import establish_secure_channel_to_server
 from common.message import MessageType
 from pprint import pprint
@@ -10,9 +7,7 @@ import select
 import datetime
 import time
 import _thread
-import demjson
-import random
-import sys
+
 
 
 COMMAND = [ '/bid','/enter','/leave', '/auctions', '/list']
@@ -22,7 +17,7 @@ class ChatRoom():
         self.sc = establish_secure_channel_to_server()
         self.should_exit = False
 
-        self.room = 0
+        self.room = -1
 
         self.send_name()
 
@@ -58,39 +53,25 @@ class ChatRoom():
                 print('Wrong input,try again')
                 continue
             if msg[0] == '/enter':
-                if self.room != 0:
+                if self.room != -1:
                     print('you should exit first')
                     continue
                 self.sc.send(MessageType.send_message,msg[1])
             if msg[0] == '/leave':
-                if self.room == 0:
+                if self.room == -1:
                     print('you are not in room')
                     continue
                 self.sc.send(MessageType.leave,self.room)
             if msg[0] == '/bid':
-                if self.room == 0:
+                if self.room == -1:
                     print('you are not in room')
                     continue
                 self.sc.send(MessageType.bid, msg[1])
             if msg[0] == '/auctions':
-                self.sc.send(MessageType.auctions)
+                self.sc.send(MessageType.auction)
             if msg[0] == '/list':
                 self.sc.send(MessageType.list)
 
-
-    def get_selected_user(self):
-        if len(self.namelists) == 0:
-            return None
-        index = self.namelists.currentRow()
-        if index <= 0:
-            return None
-
-        try:
-            print(index)
-            nickname = self.namelists.item(self.namelists.currentRow()).text()
-            return user_list[list(filter(lambda i: user_list[i]['nickname'] == nickname, user_list))[0]]
-        except IndexError:
-            return None
 
 
     def insert_system_message(self, message, hide_time=False):
@@ -115,57 +96,64 @@ class ChatRoom():
         self.sc.send(MessageType.set_user_name, self.name)
 
     def socket_reader(self):
-        print('socketreading')
         while True:
             rlist, wlist, xlist = select.select([self.sc.socket], [self.sc.socket], [])
 
             if len(rlist):
                 data = self.sc.recv()
-                print(data)
                 if data:
-                    if data['type'] == MessageType.auctions:
-                        auctions = demjson.decode(data['data'])
-                        for auction in auctions:
-                            print(auction['name'])
-                            pprint(auction['list'])
-
                     if data['type'] == MessageType.on_user_online:
                         user_list[data['parameters']['id']] = data['parameters']
                         self.insert_system_message(data['parameters']['nickname'] + ' 已经上线')
 
                     if data['type'] == MessageType.on_user_offline:
-                        #user_list[data['parameters']['id']] = ''
-                        self.insert_system_message(data['parameters']['nickname'] + ' 已经li线')
+                        self.insert_system_message(data['parameters'] + ' 已经离线')
 
-                    if data['type'] == MessageType.auctions:
-                        pprint(data['parameters']['message'])
+                    if data['type'] == MessageType.auction:
+                        message_ = data['parameters']['message']
+                        for key in range(len(message_['bid'])):
+                            key = str(key+1)
+                            print("=========auction room" + key + "========")
+                            print("auction name:" + message_['auctionname'][key])
+                            print("bid price:" + str(message_['bid'][key]))
+                            print("user:")
+                            pprint(message_['userlist'][key])
 
                     if data['type'] == MessageType.list:
-                        if self.room == -1:
-                            print("you are not in room now")
-                            continue
-                        pprint(data['parameters']['message'])
+                        print("bidder in the room:")
+                        pprint(data['parameters'])
 
                     if data['type'] == MessageType.on_new_message:
-                        self.room = data['parameters']['enter']
-                        print(data['parameters']['message'])
+                        if data['parameters']["enter"] == -1:
+                            print("The room doesn't exist")
+                        elif self.name == data['parameters']['user_name']:
+                            print("You entered room " + str(data['parameters']["enter"]) + " successfully")
+                            print("room info:")
+                            print("auction name:" + data['parameters']["auctionname"])
+                            print("bid price:" + str(data['parameters']["bid"]) )
+                            print("last bidder:" + data['parameters']["lastbidder"])
+                            self.room = data['parameters']["enter"]
+                        elif self.room == data['parameters']["enter"]:
+                            print( data['parameters']['user_name'] + " entered room")
 
                     if data['type'] == MessageType.leave:
                         if data['parameters']['nickname'] == self.name:
-                            nickname_ = 'You '
-                            if self.room == data['parameters']['roomnumber']:
+                            if data['parameters']['leave'] == '0':
+                                print("You are the last bidder")
+                                print("last bidder can't leave")
+                            else:
+                                print("You have left room")
                                 self.room = -1
-                        else:
-                            nickname_ = data['parameters']['nickname']
+                            continue
 
                         if self.room == data['parameters']['roomnumber']:
-                            print(nickname_ + data['parameters']['message'])
+                            print(data['parameters']['nickname'] + " has left room")
 
                     if data['type'] == MessageType.bid:
                         if data['parameters']['message'] == '':
                             if data['parameters']['nickname'] == self.name:
                                 print("You can't bet price lower" )
-                                print("the price now is" + str(data['parameters']['bid']))
+                                print("the price now is " + str(data['parameters']['bid']))
                             continue
 
                         if data['parameters']['nickname'] == self.name:

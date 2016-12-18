@@ -23,7 +23,7 @@ class MessageType(Enum):
     server_notification = 9
     chat_history_bundle = 10
 
-    auctions = 11
+    auction = 11
     leave = 12
     bid = 13
     list = 14
@@ -49,8 +49,11 @@ def _get_message_type_from_value(value):
         9: MessageType.server_notification,
         10: MessageType.chat_history_bundle,
 
+
+        11: MessageType.auction,
         12: MessageType.leave,
         13: MessageType.bid,
+        14: MessageType.list,
 
 
         21: MessageType.msg,
