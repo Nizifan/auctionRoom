@@ -8,11 +8,16 @@ from server.broadcast import broadcast
 def run(sc, parameter):
     sender_user_id = socket_mappings['user_id'][sc.socket]
     nickname_ = user_id_mappings['nickname'][sender_user_id]
-    room_mappings['user_id'][str(parameter)].remove(sender_user_id)
-    message_ = " has left room"
 
-    message = {"message": message_, "nickname": nickname_, "roomnumber":str(parameter)}
-    broadcast(MessageType.leave,message)
+    #print(room_mappings['lastbidder'][str(parameter)])
+
+    if room_mappings['lastbidder'][str(parameter)] == nickname_:
+        sc.send(MessageType.leave, {"leave":"0", "nickname":nickname_})
+    else:
+        if sender_user_id in room_mappings['user_id'][str(parameter)]:
+            room_mappings['user_id'][str(parameter)].remove(sender_user_id)
+        message = {"leave": "1", "nickname": nickname_, "roomnumber":str(parameter)}
+        broadcast(MessageType.leave,message)
 
 
 

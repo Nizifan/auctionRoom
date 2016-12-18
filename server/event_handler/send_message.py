@@ -12,17 +12,29 @@ import time
 
 def run(sc, parameter):
     if parameter in room_list:
-        message_ = "you have enter room" + str(parameter) + 'successfully'
         entered_ = parameter
         socket_mappings['room'][sc.socket] = parameter
         user_id = socket_mappings["user_id"][sc.socket]
         room_mappings["user_id"][parameter].append(user_id)
+        bidder = room_mappings["lastbidder"][str(parameter)]
+        nickname = socket_mappings["nickname"][sc.socket]
+        if bidder == -1:
+            bidder_name = "System initial"
+        else:
+            bidder_name = user_id_mappings["nickname"][bidder]
+        price = room_mappings['bid'][parameter]
+        auction = room_mappings["auctionname"][parameter]
+        message = {"enter": entered_, "bid": price, "lastbidder": bidder_name, "user_name":nickname,"auctionname":auction}
+        broadcast(MessageType.on_new_message, message)
 
     else:
-        message_ = "The room doesn't exist"
-        entered_ = 0
-    message = {"message": message_, "enter": str(entered_)}
-    broadcast(MessageType.on_new_message,message)
+        entered_ = -1
+        price = 0
+        bidder_name = ""
+        message = {"enter": entered_}
+        sc.send(MessageType.on_new_message,message)
+
+
 
 
 

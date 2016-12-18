@@ -15,9 +15,9 @@ def run(sc, parameter):
     room = socket_mappings['room'][sc.socket]
     bid_price_ = room_mappings['bid'][room]
     if bid_price_ < int(parameter):
-        message_ = " has bid " + str(parameter)
+        message_ = " bid " + str(parameter)
         room_mappings['bid'][room] = int(parameter)
-        room_mappings['lastbidder'][room] = sender_user_id
+        room_mappings['lastbidder'][room] = nickname_
         message = {"message": message_, "nickname": nickname_, "roomnumber":room, 'bid':parameter}
     else:
         message_ = ""

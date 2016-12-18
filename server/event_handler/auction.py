@@ -1,5 +1,5 @@
 from common.message import MessageType
-from server.memory import socket_mappings, room_mappings
+from server.memory import socket_mappings, room_mappings, room_list
 from server.memory import user_id_mappings
 from server.broadcast import broadcast
 
@@ -9,7 +9,7 @@ def run(sc, parameter):
     message_ = {
         "auctionname":{},
         "bid":{},
-        "userlist":[]
+        "userlist":{}
     }
 
     for room in room_list:
@@ -21,7 +21,7 @@ def run(sc, parameter):
         message_["userlist"][room] = nickname_
 
     message = {"message": message_}
-    sc.socket.send(MessageType.leave,message)
+    sc.send(MessageType.auction , message)
 
 
 

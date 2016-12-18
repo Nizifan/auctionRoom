@@ -20,7 +20,8 @@ room_mappings = {
 connections = []
 chat_history = []
 user_id_incr = 1
-room_list = ['1']
+room_list = []
+room = -1
 
 def remove_from_socket_mapping(socket):
     for key, value in socket_mappings.items():
